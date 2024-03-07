@@ -43,6 +43,20 @@ app.get("/", (req, res, next) => {
         res.status(500).json({ error: "Internal server error" });
     }
 });
+app.post("/insert", (req, res, next) => {
+    try {
+        User_1.user.addData(req.body)
+            .then((result) => {
+            res.status(200).json(result);
+        })
+            .catch((error) => {
+            res.status(400).json({ error: error });
+        });
+    }
+    catch (error) {
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
 app.listen(4500, async () => {
     console.log("Port is listening on port 4500");
     try {

@@ -20,6 +20,20 @@ class User {
             }
         });
     }
+    async addData(body) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let { name } = body;
+                const coll = index_1.client.db("Test").collection("user");
+                const cursor = coll.insertOne({ name: name });
+                await cursor;
+                resolve("OK");
+            }
+            catch (error) {
+                reject(error);
+            }
+        });
+    }
 }
 exports.User = User;
 exports.user = new User();
