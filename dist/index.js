@@ -15,37 +15,50 @@ app.use(body_parser_1.default.urlencoded({ extended: true, limit: 1024 }));
  * Requires the MongoDB Node.js Driver
  * https://mongodb.github.io/node-mongodb-native
  */
-const filter = {};
-const projection = {};
-const sort = {};
-const collation = {};
-mongodb_1.MongoClient.connect("mongodb://localhost:27017/").then((client) => {
-    app.get("/", (req, res, next) => {
-        fetchData()
-            .then((result) => {
-            res.status(200).json(result);
-        })
-            .catch((error) => {
-            res.status(400).json({ error: error });
-        });
-    });
-    async function fetchData() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const coll = client.db("Test").collection("user");
-                const cursor = coll.find(filter, { projection, sort, collation });
-                const result = await cursor.toArray();
-                await client.close();
-                resolve(result);
-            }
-            catch (error) {
-                reject(error);
-            }
-        });
+// Create database connection pool
+const uri = "mongodb://localhost:27017/";
+const client = new mongodb_1.MongoClient(uri, { maxPoolSize: 10, minPoolSize: 1 });
+async function connectToDatabase() {
+    try {
+        await client.connect();
+        console.log("Connected to database");
     }
-    app.listen(4500, () => {
-        console.log("Port is listening on port 4500");
+    catch (error) {
+        console.error("Error connecting to database:", error);
+    }
+}
+app.get("/", (req, res, next) => {
+    fetchData()
+        .then((result) => {
+        res.status(200).json(result);
+    })
+        .catch((error) => {
+        res.status(400).json({ error: error });
     });
-}).catch((error) => {
-    console.log(error);
+});
+async function fetchData() {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const filter = {};
+            const projection = {};
+            const sort = {};
+            const collation = {};
+            const coll = client.db("Test").collection("user");
+            const cursor = coll.find(filter, { projection, sort, collation });
+            const result = await cursor.toArray();
+            resolve(result);
+        }
+        catch (error) {
+            reject(error);
+        }
+    });
+}
+app.listen(4500, async () => {
+    console.log("Port is listening on port 4500");
+    try {
+        await connectToDatabase();
+    }
+    catch (error) {
+        console.log(error);
+    }
 });
